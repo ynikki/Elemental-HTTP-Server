@@ -7,13 +7,6 @@ var url = require('url');
 
 var CONFIG = require('./config');
 
-// var route_sites = {
-//   'css': './public/css/styles.css',
-//   'index': './public/index.html',
-//   'helium': './pubic/helium.html',
-//   'hydrogen': './public/hydrogen.html'
-// };
-
 function handleRequest (req, response) {
   fs.readFile('./public' + req.url, 'utf8', function (err, data) {
     if (err){
@@ -36,11 +29,16 @@ var server = http.createServer( function (req, response) {
   console.log('hello');
   response.writeHead(200);
   handleRequest(req,response);
-
 });
 
-server.on('connect', function (req, cltSocket, head) {
-  console.log('blah');
+server.on('request', function (req, response) {
+  req.on('data', function (chunk) {
+    console.log(chunk);
+  });
+
+  req.on('end', function () {
+    server.close();
+  });
 });
 
 
