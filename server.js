@@ -20,15 +20,13 @@ var CONFIG = require('./config');
 
 var server = http.createServer( function (request, response) {
   // how you serve your client.
-  request.on('data', function (chunk) {
-    var requestFile = chunk.toString();
-    requestObj = querystring.parse(requestFile);
-  });
   response.writeHead(200, {'Content-Type' : contentTypes});  
   // handleRequest(request,response);
 });
 
 server.on('request', handleRequest);
+
+server.on('connect', handleRequest);
 
 server.listen(CONFIG.PORT, function () {
   var serverPort = server.address().port;
@@ -54,12 +52,14 @@ function postHandler (request) {
   // do POST stuff in here..
   request.on('data', function (chunk) {
     var requestFile = chunk.toString();
+   console.log(requestFile);
     requestObj = querystring.parse(requestFile);
-    var localHost = request.headers.host;
-    var uri = url.parse(request.url).pathname;
-    var elementName = requestObj.elementName;
-    var filename = path.join(localHost, uri, elementName.toLowerCase() + '.html');
-    console.log(filename);
+    // var localHost = request.headers.host;
+    // var uri = url.parse(request.url).pathname;
+    // var elementName = requestObj.elementName;
+    // var filename = path.join(localHost, uri, elementName.toLowerCase() + '.html');
+    console.log(requestObj);
+    return;
   });
 
   request.on('end', function () {
@@ -71,7 +71,7 @@ function postHandler (request) {
     htmlFileBody += '<head>\n';
     htmlFileBody += '<meta charset="UTF-8">\n';
     htmlFileBody += '<title>The Elements -' + ' ' + requestObj.elementName + '</title>\n';
-    htmlFileBody += '<link rel="stylesheet" href="/css/styles.css" text="text/css">\n';
+    htmlFileBody += '<link rel="stylesheet" src="./css/styles.css" text="text/css">\n';
     htmlFileBody += '</head>\n';
     htmlFileBody += '<body>\n';
     htmlFileBody += '<h1>' + requestObj.elementName + '</h1>\n';
