@@ -11,18 +11,31 @@ var requestObj = "";
 var elements = "";
 
 var contentTypes = {
-  '.html' : 'text/html',
-  '.css' : 'text/css'
+  '.html': 'text/html',
+  '.css': 'text/css',
+  '.js': 'text/javascript'
 };
 
 var CONFIG = require('./config');
 
-
 var server = http.createServer( function (request, response) {
   // how you serve your client.
+  var uri = url.parse(request.url).pathname,
+      filename = path.join(process.cwd(), '/public');
   response.writeHead(200, {'Content-Type' : contentTypes});  
   // handleRequest(request,response);
-  response.end();
+  fs.exists(filename, function(exists) {
+    if(!exists) {
+      response.writeHead(404, {'Content-Type': contentTypes});
+      return;
+    } if (fs.statSync(filename).isDirectory()) filename += '/index.html';
+      fs.readFile(filename, "binary", function(err, file) {
+        if(err) {
+          response.writeHead(500, {'Content-Type': contentTypes});
+        }
+
+    })
+  })
 });
 
 server.on('request', handleRequest);
@@ -73,7 +86,7 @@ function postHandler (request) {
     htmlFileBody += '<head>\n';
     htmlFileBody += '<meta charset="UTF-8">\n';
     htmlFileBody += '<title>The Elements -' + ' ' + requestObj.elementName + '</title>\n';
-    htmlFileBody += '<link rel="stylesheet" href="../css/styles.css" text="text/css">\n';
+    htmlFileBody += '<link rel="stylesheet" href="/css/styles.css" type="text/css">\n';
     htmlFileBody += '</head>\n';
     htmlFileBody += '<body>\n';
     htmlFileBody += '<h1>' + requestObj.elementName + '</h1>\n';
@@ -91,7 +104,14 @@ function postHandler (request) {
 
 function getHandler (request, response) {
     // do GET stuff in here...
+  var options = {
+    hostname: 'localhost',
+    port: CONFIG.PORT,
+    path: '/',
+    method: 'CONNECT'
+  }
   fs.readFile('./public' + '/' + request.url, 'utf8', function (err, data) {
+    console.log(request.url);
     if (err){
       fs.readFile('./public/404.html', 'utf8', function (err, data) {
         var errorFile = data.toString();
