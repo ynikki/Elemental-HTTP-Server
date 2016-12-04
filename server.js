@@ -22,6 +22,7 @@ var server = http.createServer( function (request, response) {
   // how you serve your client.
   response.writeHead(200, {'Content-Type' : contentTypes});  
   // handleRequest(request,response);
+  response.end();
 });
 
 server.on('request', handleRequest);
@@ -39,7 +40,8 @@ function handleRequest (request, response) {
     console.log('GET');
   } if (request.method === 'POST'){
     // do POST stuff in here..
-    postHandler(request);
+    postHanlder(request);
+    console.log('POST');
   } if (request.method === 'PUT'){
     // do PUT stuff in here..
   } if (request.method === 'DELETE'){
@@ -71,7 +73,7 @@ function postHandler (request) {
     htmlFileBody += '<head>\n';
     htmlFileBody += '<meta charset="UTF-8">\n';
     htmlFileBody += '<title>The Elements -' + ' ' + requestObj.elementName + '</title>\n';
-    htmlFileBody += '<link rel="stylesheet" src="./css/styles.css" text="text/css">\n';
+    htmlFileBody += '<link rel="stylesheet" href="../css/styles.css" text="text/css">\n';
     htmlFileBody += '</head>\n';
     htmlFileBody += '<body>\n';
     htmlFileBody += '<h1>' + requestObj.elementName + '</h1>\n';
@@ -89,11 +91,11 @@ function postHandler (request) {
 
 function getHandler (request, response) {
     // do GET stuff in here...
-  fs.readFile('./public' + request.url, 'utf8', function (err, data) {
+  fs.readFile('./public' + '/' + request.url, 'utf8', function (err, data) {
     if (err){
       fs.readFile('./public/404.html', 'utf8', function (err, data) {
         var errorFile = data.toString();
-        response.writeHead(400);
+        response.writeHead(400, {'Content-Types': contentTypes});
         response.write(errorFile);
       });
       return;
