@@ -18,24 +18,37 @@ var contentTypes = {
 
 var CONFIG = require('./config');
 
+var neededstats = [];
+
 var server = http.createServer( function (request, response) {
   // how you serve your client.
-  var uri = url.parse(request.url).pathname,
-      filename = path.join(process.cwd(), '/public');
+  // var uri = url.parse(request.url).pathname,
+  //     filename = path.join(process.cwd(), '/public');
+  var urlParts = url.parse(request.url).pathname;
+  var queryData = url.parse(request.url, true).query;
+  var keyValue = '';
   response.writeHead(200, {'Content-Type' : contentTypes});  
   // handleRequest(request,response);
-  fs.exists(filename, function(exists) {
-    if(!exists) {
-      response.writeHead(404, {'Content-Type': contentTypes});
-      return;
-    } if (fs.statSync(filename).isDirectory()) filename += '/index.html';
-      fs.readFile(filename, "binary", function(err, file) {
-        if(err) {
-          response.writeHead(500, {'Content-Type': contentTypes});
-        }
-
-    })
-  })
+  if (request.url === '/favicon.ico') {
+    response.writeHead(200, {'Content-Type': 'image/x-icon'});
+  } else if (request.url == '/index.html' || request.url == '/') {
+    fs.readFile('./index.html', function(err, data) {
+    });
+  } else {
+    console.log(urlParts,"what");
+    var p = __dirname + '/' + request.params[keyValue].filename;
+    fs.stat(p, function(err, stats) {
+      if (err) {
+        throw err;
+      }
+      neededstats.push(stats.mtime);
+      neededstats.push(stats.size);
+      res.send(neededstats);
+    });
+  }
+  if (queryData.name) {
+    response.end(queryData.name + '\n');
+  }
 });
 
 server.on('request', handleRequest);
@@ -67,13 +80,12 @@ function postHandler (request) {
   // do POST stuff in here..
   request.on('data', function (chunk) {
     var requestFile = chunk.toString();
-   console.log(requestFile);
+    console.log(requestFile, "requestFile");
     requestObj = querystring.parse(requestFile);
     // var localHost = request.headers.host;
     // var uri = url.parse(request.url).pathname;
     // var elementName = requestObj.elementName;
     // var filename = path.join(localHost, uri, elementName.toLowerCase() + '.html');
-    console.log(requestObj);
     return;
   });
 
@@ -86,7 +98,7 @@ function postHandler (request) {
     htmlFileBody += '<head>\n';
     htmlFileBody += '<meta charset="UTF-8">\n';
     htmlFileBody += '<title>The Elements -' + ' ' + requestObj.elementName + '</title>\n';
-    htmlFileBody += '<link rel="stylesheet" href="/css/styles.css" type="text/css">\n';
+    htmlFileBody += '<link rel="stylesheet" href="/css/styles.css">\n';
     htmlFileBody += '</head>\n';
     htmlFileBody += '<body>\n';
     htmlFileBody += '<h1>' + requestObj.elementName + '</h1>\n';
@@ -102,20 +114,21 @@ function postHandler (request) {
   });
 }
 
+function homepage(request, response) {
+  fs.readFile('./public/index.html', 'utf8', function(err, data) {
+    response.writeHead(200, {'Content-Type': contentTypes});
+  })
+}
+
 function getHandler (request, response) {
     // do GET stuff in here...
-  var options = {
-    hostname: 'localhost',
-    port: CONFIG.PORT,
-    path: '/',
-    method: 'CONNECT'
-  }
-  fs.readFile('./public' + '/' + request.url, 'utf8', function (err, data) {
-    console.log(request.url);
+  // var req = http.request(options);
+  fs.readFile('./public' + request.url, 'utf8', function (err, data) {
+    console.log(request.url, "getHandler");
     if (err){
       fs.readFile('./public/404.html', 'utf8', function (err, data) {
         var errorFile = data.toString();
-        response.writeHead(400, {'Content-Types': contentTypes});
+        response.writeHead(400, {'Content-Type': contentTypes});
         response.write(errorFile);
       });
       return;
