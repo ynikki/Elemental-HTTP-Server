@@ -13,7 +13,8 @@ var elements = "";
 var contentTypes = {
   '.html': 'text/html',
   '.css': 'text/css',
-  '.js': 'text/javascript'
+  '.js': 'text/javascript',
+  '.ico': 'image/x-icon'
 };
 
 var CONFIG = require('./config');
@@ -27,28 +28,6 @@ var server = http.createServer( function (request, response) {
   var urlParts = url.parse(request.url).pathname;
   var queryData = url.parse(request.url, true).query;
   var keyValue = '';
-  response.writeHead(200, {'Content-Type' : contentTypes});  
-  // handleRequest(request,response);
-  if (request.url === '/favicon.ico') {
-    response.writeHead(200, {'Content-Type': 'image/x-icon'});
-  } else if (request.url == '/index.html' || request.url == '/') {
-    fs.readFile('./index.html', function(err, data) {
-    });
-  } else {
-    console.log(urlParts,"what");
-    var p = __dirname + '/' + request.params[keyValue].filename;
-    fs.stat(p, function(err, stats) {
-      if (err) {
-        throw err;
-      }
-      neededstats.push(stats.mtime);
-      neededstats.push(stats.size);
-      res.send(neededstats);
-    });
-  }
-  if (queryData.name) {
-    response.end(queryData.name + '\n');
-  }
 });
 
 server.on('request', handleRequest);
@@ -123,21 +102,29 @@ function homepage(request, response) {
 function getHandler (request, response) {
     // do GET stuff in here...
   // var req = http.request(options);
-  fs.readFile('./public' + request.url, 'utf8', function (err, data) {
+  if (request.url === '/') {
+    fs.readFile('./public/index.html', 'utf8', function (err, data) {
+      var fileContent = data.toString();
+      response.write(fileContent);
+      response.end();
+    });
+  }else {
+    fs.readFile('./public' + request.url, 'utf8', function (err, data) {
     console.log(request.url, "getHandler");
-    if (err){
-      fs.readFile('./public/404.html', 'utf8', function (err, data) {
-        var errorFile = data.toString();
-        response.writeHead(400, {'Content-Type': contentTypes});
-        response.write(errorFile);
-      });
-      return;
-    }  
-    var fileContent = data.toString();
-    response.writeHead(200, {'Content-Type' : contentTypes});
-    response.write(fileContent);
-    response.end();
-  });
+      if (err){
+        fs.readFile('./public/404.html', 'utf8', function (err, data) {
+          var errorFile = data.toString();
+          response.writeHead(400, {'Content-Type': contentTypes});
+          response.write(errorFile);
+        });
+        return;
+      }  
+      var fileContent = data.toString();
+      // response.writeHead(200, {'Content-Type' : contentTypes});
+      response.write(fileContent);
+      response.end();
+    });  
+  }
 }
 
 function putHandler (request) {
